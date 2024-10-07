@@ -28,12 +28,9 @@ def main():
     def validate_numeric(P):
         return P.isdigit() or P == ""
 
-    def validate_delay_speed(P):
-        return P in ('slow', 'normal', 'fast')
-
     # Register validation commands
     validate_numeric_cmd = root.register(validate_numeric)
-    validate_delay_speed_cmd = root.register(validate_delay_speed)
+
 
     # "Number of accounts:" label and entry
     tk.Label(root, text="Number of accounts:", bg=bg_color, fg=fg_color).grid(row=0, column=0, sticky='e', padx=5, pady=5)
@@ -134,7 +131,7 @@ def main():
                     script_running = False
                     root.after(0, lambda: status_label.config(text='Script stopped'))
         except AttributeError:
-            pass  # Ignore special keys
+            pass
 
     def run_ahk_script():
         try:

@@ -1,9 +1,48 @@
 from ahk import AHK
 import time
 
+from ahk import AHK
+import time
+
+ahk = AHK()
+
 def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limit, buy_sell, delay_speed, update_status):
 
-    ahk.click() 
+    def safe_send(command):
+        if stop_event.is_set():
+            return
+        ahk.send(command)
+
+    def safe_click():
+        if stop_event.is_set():
+            return
+        ahk.click()
+
+    def sleep_with_stop(duration):
+        elapsed = 0
+        interval = 0.1
+        while elapsed < duration:
+            if stop_event.is_set():
+                return
+            time.sleep(interval)
+            elapsed += interval
+
+    if stop_event.is_set():
+        return
+
+    if delay_speed == 'Fast':
+        short_delay = 0.75
+        long_delay = 1.5
+        tab_delay = 0.05
+    if delay_speed == 'Medium':
+        short_delay = 1
+        long_delay = 2
+        tab_delay = 0.06
+    if delay_speed == 'Slow':
+        short_delay = 1.5
+        long_delay = 2.5
+        tab_delay = 0.1
+
     if extended_hours == True:
         if buy_sell == 'Buy':
             first_tab = 16
@@ -24,50 +63,47 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
         if market_limit == 'Market':
             first_tab -= 2
             second_tab -= 2
-        
-    if start_from == 0:
-        update_status(1)
-        ahk.click()
-        for _ in range(first_tab):
-            ahk.send('{Tab}') 
-            time.sleep(0.1)
-        ahk.send('{Enter}')
-        time.sleep(2) 
-        ahk.send('{Enter}')  
-        time.sleep(1)
-    print(num_accounts)
 
-    for account_num in range(start_from+1, num_accounts +1):
 
+    for account_num in range(start_from, num_accounts):
         if stop_event.is_set():
             break
 
         update_status(account_num+1)
-        
-        time.sleep(1) 
-        ahk.click()  
-        time.sleep(1)  
+
+        safe_click()
+        sleep_with_stop(0.5)
         for _ in range(2):
-            ahk.send('{Tab}') 
-        ahk.send('{Enter}') 
+            safe_send('{Tab}')
+            if stop_event.is_set():
+                return
+        safe_send('{Enter}')
 
-        time.sleep(1) 
+        sleep_with_stop(0.5)
+        # Select the next account
         for _ in range(account_num):
-            ahk.send('{Down}')
-        time.sleep(1)
-        ahk.send('{Enter}') 
+            safe_send('{Down}')
+            if stop_event.is_set():
+                return
+        sleep_with_stop(0.5)
+        safe_send('{Enter}')
 
-        time.sleep(1.5) 
+        sleep_with_stop(short_delay)
 
         for _ in range(second_tab):
-            ahk.send('{Tab}')
-            time.sleep(0.1)
-        time.sleep(1) 
-        ahk.send('{Enter}') 
-        time.sleep(2) 
-        ahk.send('{Enter}')  
-        time.sleep(1)  
-        ahk.click() 
+            safe_send('{Tab}')
+            sleep_with_stop(tab_delay)
+            if stop_event.is_set():
+                return
+        sleep_with_stop(0.5)
+        safe_send('{Enter}')
+        sleep_with_stop(long_delay)
+        safe_send('{Enter}')
+        sleep_with_stop(short_delay)
+        safe_click()
+
+        if stop_event.is_set():
+            break
 
 
 def stop_script():
