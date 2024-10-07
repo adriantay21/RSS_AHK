@@ -9,7 +9,7 @@ Python AHK script for automated trading in Fidelity. The script will be made int
 3. Run main.py
 
 
-## Pip install
+## pip install
 
 ```terminal
 pip install pynput
