@@ -64,7 +64,7 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
             first_tab -= 2
             second_tab -= 2
 
-
+    start_from -= 1
     for account_num in range(start_from, num_accounts):
         if stop_event.is_set():
             break
