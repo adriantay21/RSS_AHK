@@ -45,11 +45,11 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
 
     if extended_hours == True:
         if buy_sell == 'Buy':
-            first_tab = 16
-            second_tab = 14
+            first_tab = 15
+            second_tab = 13
         elif buy_sell == 'Sell':
-            first_tab = 18
-            second_tab = 16
+            first_tab = 17
+            second_tab = 15
         if market_limit == 'Market':
             first_tab -= 2
             second_tab -= 2
@@ -66,10 +66,12 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
 
     start_from -= 1
     for account_num in range(start_from, num_accounts):
+        account_num += 1
+        print(account_num)
         if stop_event.is_set():
             break
 
-        update_status(account_num+1)
+        update_status(account_num)
 
         safe_click()
         sleep_with_stop(0.5)
@@ -81,6 +83,7 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
 
         sleep_with_stop(0.5)
         # Select the next account
+
         for _ in range(account_num):
             safe_send('{Down}')
             if stop_event.is_set():
