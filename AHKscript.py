@@ -1,6 +1,5 @@
 from ahk import AHK
 import time
-
 from ahk import AHK
 import time
 
@@ -63,11 +62,8 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
         if market_limit == 'Market':
             first_tab -= 2
             second_tab -= 2
-
-    start_from -= 2
     for account_num in range(start_from, num_accounts):
         account_num += 1
-        print(account_num)
         if stop_event.is_set():
             break
 
@@ -83,8 +79,8 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
 
         sleep_with_stop(0.5)
         # Select the next account
-
-        for _ in range(account_num):
+        down_arrow = account_num - 2
+        for _ in range(down_arrow):
             safe_send('{Down}')
             if stop_event.is_set():
                 return
