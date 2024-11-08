@@ -89,7 +89,7 @@ class App:
         self.market_limit = self.market_limit_dropdown.get()
         self.buy_sell = self.buy_sell_dropdown.get()
 
-        self.start_from = int(self.start_from) if self.start_from.isdigit() else 0
+        self.start_from = int(self.start_from) if self.start_from.isdigit() else 1
 
         # Update status label
         self.status_label.config(text='Script ready, press "$" to activate')
