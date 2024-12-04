@@ -39,8 +39,12 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
         tab_delay = 0.06
     if delay_speed == 'Slow':
         short_delay = 1.5
-        long_delay = 2.5
+        long_delay = 3
         tab_delay = 0.1
+    if delay_speed == 'Slower':
+        short_delay = 2
+        long_delay = 4
+        tab_delay = 0.15
 
     if extended_hours == True:
         if buy_sell == 'Buy':

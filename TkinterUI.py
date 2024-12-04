@@ -56,7 +56,7 @@ class App:
 
         # "Delay Speed:" label and dropdown
         tk.Label(self.root, text="Delay Speed:", bg=self.bg_color, fg=self.fg_color).grid(row=4, column=0, sticky='e', padx=5, pady=5)
-        self.delay_speed_dropdown = ttk.Combobox(self.root, values=["Slow", "Medium", "Fast"], state="readonly", width=10)
+        self.delay_speed_dropdown = ttk.Combobox(self.root, values=["Slower","Slow", "Medium", "Fast"], state="readonly", width=10)
         self.delay_speed_dropdown.grid(row=4, column=1, padx=5, pady=5)
         self.delay_speed_dropdown.set("Medium")  # Set default value
 
