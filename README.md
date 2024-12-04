@@ -14,5 +14,6 @@ Python AHK script for automated trading in Fidelity. The script will be made int
 ```terminal
 pip install pynput
 pip install ahk
-pip install tkinter
+pip install "ahk[binary]"
+pip install tk
 ```
