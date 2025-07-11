@@ -5,7 +5,7 @@ import time
 
 ahk = AHK()
 
-def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limit, buy_sell, delay_speed, update_status):
+def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limit, buy_sell, delay_speed, update_status, price):
 
     def safe_send(command):
         if stop_event.is_set():
@@ -48,25 +48,58 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
 
     if extended_hours == True:
         if buy_sell == 'Buy':
-            first_tab = 15
-            second_tab = 13
+            no_of_tabs = 13
         elif buy_sell == 'Sell':
-            first_tab = 17
-            second_tab = 15
+            no_of_tabs = 15
         if market_limit == 'Market':
-            first_tab -= 2
-            second_tab -= 2
+            no_of_tabs -= 2
     elif extended_hours == False:
         if buy_sell == 'Buy':
-            first_tab = 17
-            second_tab = 15
+            no_of_tabs = 15
         elif buy_sell == 'Sell':
-            first_tab = 19
-            second_tab = 17
+            no_of_tabs = 17
         if market_limit == 'Market':
-            first_tab -= 2
-            second_tab -= 2
+            no_of_tabs -= 2
     for account_num in range(start_from, num_accounts):
+        # if start_from == account_num:
+        #     account_num += 1
+        #     if stop_event.is_set():
+        #         break
+
+        #     update_status(account_num)
+
+        #     safe_click()
+        #     sleep_with_stop(0.5)
+        #     for _ in range(2):
+        #         safe_send('{Tab}')
+        #         if stop_event.is_set():
+        #             return
+        #     safe_send('{Enter}')
+
+        #     sleep_with_stop(0.5)
+        #     # Select the next account
+        #     down_arrow = account_num - 2
+        #     for _ in range(down_arrow):
+        #         safe_send('{Down}')
+        #         if stop_event.is_set():
+        #             return
+        #     sleep_with_stop(0.5)
+        #     safe_send('{Enter}')
+
+        #     sleep_with_stop(short_delay)
+
+        #     for _ in range(no_of_tabs):
+        #         safe_send('{Tab}')
+        #         sleep_with_stop(tab_delay)
+        #         if stop_event.is_set():
+        #             return
+        #     sleep_with_stop(0.5)
+        #     safe_send('{Enter}')
+        #     sleep_with_stop(long_delay)
+        #     safe_send('{Enter}')
+        #     sleep_with_stop(short_delay)
+        #     safe_click()
+        # else:
         account_num += 1
         if stop_event.is_set():
             break
@@ -92,19 +125,44 @@ def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limi
         safe_send('{Enter}')
 
         sleep_with_stop(short_delay)
-
-        for _ in range(second_tab):
+        if market_limit == 'Limit':        
+            for _ in range(no_of_tabs-4):
+                safe_send('{Tab}')
+                sleep_with_stop(tab_delay)
+                if stop_event.is_set():
+                    return
+                
+            safe_send('{Space}')
+            safe_send('{Right}')
             safe_send('{Tab}')
-            sleep_with_stop(tab_delay)
-            if stop_event.is_set():
-                return
+            safe_send(str(price))
+
+            for _ in range(3):
+                safe_send('{Tab}')
+                sleep_with_stop(tab_delay)
+                if stop_event.is_set():
+                    return
+
+        if market_limit == 'Market':
+            for _ in range(no_of_tabs-3):
+                safe_send('{Tab}')
+                sleep_with_stop(tab_delay)
+                if stop_event.is_set():
+                    return
+            
+            safe_send('{Space}')
+
+            for _ in range(3):
+                safe_send('{Tab}')
+                sleep_with_stop(tab_delay)
+                if stop_event.is_set():
+                    return               
         sleep_with_stop(0.5)
         safe_send('{Enter}')
         sleep_with_stop(long_delay)
         safe_send('{Enter}')
         sleep_with_stop(short_delay)
-        safe_click()
-
+        safe_click()       
         if stop_event.is_set():
             break
 
