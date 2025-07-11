@@ -1,19 +1,20 @@
-# About
+# Fidelity Auto-Trader 🛠️📈
 
-Python AHK script for automated trading in Fidelity. The script will be made into an executable in the future.
+Python AHK script for automated trading in Fidelity. 
 
-# Instructions
+## 🚀 Quick Start
 
-1. Install Python
-2. Install packages using pip install in your terminal
-3. Run main.py
+### Using the standalone **EXE**
 
+1. Download the latest [EXE](https://drive.google.com/file/d/1WnvrqUsv0ozJPFkDZRr3AxSfGKJ1tUzV/view?usp=sharing).
+2. Double-click to launch. No Python required.
 
-## pip install
+### If the EXE fails (or you prefer running from source)
 
-```terminal
-pip install pynput
-pip install ahk
-pip install "ahk[binary]"
-pip install tk
-```
+1. Install [**Python 3.9 +**](https://python.org).  
+2. install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+3. run main.py
+
