@@ -1,175 +1,122 @@
-from ahk import AHK
+from __future__ import annotations
+from enum import Enum, auto
+from dataclasses import dataclass
 import time
 from ahk import AHK
-import time
 
 ahk = AHK()
 
-def ahk_script(num_accounts, extended_hours, start_from, stop_event, market_limit, buy_sell, delay_speed, update_status, price):
+# --------------------------------------------------------------------------- #
+class Side(Enum):
+    BUY = auto()
+    SELL = auto()
 
-    def safe_send(command):
-        if stop_event.is_set():
-            return
-        ahk.send(command)
+class OrderType(Enum):
+    LIMIT = auto()
+    MARKET = auto()
 
-    def safe_click():
-        if stop_event.is_set():
-            return
-        ahk.click()
+# delay profiles ------------------------------------------------------------ #
+DELAY_PROFILES: dict[str, dict[str, float]] = {
+    'Fast':   dict(short=0.75, long=1.5, tab=0.05),
+    'Medium': dict(short=1.0, long=2.0, tab=0.06),
+    'Slow':   dict(short=1.5, long=3.0, tab=0.10),
+    'Slower': dict(short=2.0, long=4.0, tab=0.15),
+}
 
-    def sleep_with_stop(duration):
-        elapsed = 0
-        interval = 0.1
-        while elapsed < duration:
-            if stop_event.is_set():
-                return
-            time.sleep(interval)
-            elapsed += interval
+# --------------------------------------------------------------------------- #
+@dataclass
+class OrderEnv:
+    side: Side
+    order_type: OrderType
+    extended: bool
 
-    if stop_event.is_set():
-        return
+    def tabs_to_price_field(self) -> int:
+        base = 13 if self.extended and self.side is Side.BUY else 15
+        if self.order_type is OrderType.MARKET:
+            base -= 2
+        return base
 
-    if delay_speed == 'Fast':
-        short_delay = 0.75
-        long_delay = 1.5
-        tab_delay = 0.05
-    if delay_speed == 'Medium':
-        short_delay = 1
-        long_delay = 2
-        tab_delay = 0.06
-    if delay_speed == 'Slow':
-        short_delay = 1.5
-        long_delay = 3
-        tab_delay = 0.1
-    if delay_speed == 'Slower':
-        short_delay = 2
-        long_delay = 4
-        tab_delay = 0.15
 
-    if extended_hours == True:
-        if buy_sell == 'Buy':
-            no_of_tabs = 13
-        elif buy_sell == 'Sell':
-            no_of_tabs = 15
-        if market_limit == 'Market':
-            no_of_tabs -= 2
-    elif extended_hours == False:
-        if buy_sell == 'Buy':
-            no_of_tabs = 15
-        elif buy_sell == 'Sell':
-            no_of_tabs = 17
-        if market_limit == 'Market':
-            no_of_tabs -= 2
-    for account_num in range(start_from, num_accounts):
-        # if start_from == account_num:
-        #     account_num += 1
-        #     if stop_event.is_set():
-        #         break
+# --------------------------------------------------------------------------- #
+def ahk_script(
+    num_accounts: int,
+    extended_hours: bool,
+    start_from: int,
+    stop_event,
+    market_limit: str,
+    buy_sell: str,
+    delay_speed: str,
+    update_status,
+    price: float,
+) -> None:
+    
+    # set delays based on the selected profile
 
-        #     update_status(account_num)
+    delays = DELAY_PROFILES.get(delay_speed, DELAY_PROFILES['Medium'])
+    short_delay, long_delay, tab_delay = (
+        delays['short'],
+        delays['long'],
+        delays['tab'],
+    )
 
-        #     safe_click()
-        #     sleep_with_stop(0.5)
-        #     for _ in range(2):
-        #         safe_send('{Tab}')
-        #         if stop_event.is_set():
-        #             return
-        #     safe_send('{Enter}')
+    env = OrderEnv(
+        side=Side.BUY if buy_sell == 'Buy' else Side.SELL,
+        order_type=OrderType.LIMIT if market_limit == 'Limit' else OrderType.MARKET,
+        extended=extended_hours,
+    )
 
-        #     sleep_with_stop(0.5)
-        #     # Select the next account
-        #     down_arrow = account_num - 2
-        #     for _ in range(down_arrow):
-        #         safe_send('{Down}')
-        #         if stop_event.is_set():
-        #             return
-        #     sleep_with_stop(0.5)
-        #     safe_send('{Enter}')
+    # helpers --------------------------------------------------------------- #
+    def safe_send(cmd: str) -> None:
+        if not stop_event.is_set():
+            ahk.send(cmd)
 
-        #     sleep_with_stop(short_delay)
+    def safe_click() -> None:
+        if not stop_event.is_set():
+            ahk.click()
 
-        #     for _ in range(no_of_tabs):
-        #         safe_send('{Tab}')
-        #         sleep_with_stop(tab_delay)
-        #         if stop_event.is_set():
-        #             return
-        #     sleep_with_stop(0.5)
-        #     safe_send('{Enter}')
-        #     sleep_with_stop(long_delay)
-        #     safe_send('{Enter}')
-        #     sleep_with_stop(short_delay)
-        #     safe_click()
-        # else:
-        account_num += 1
+    def sleep_with_stop(sec: float) -> None:
+        end = time.monotonic() + sec
+        while time.monotonic() < end and not stop_event.is_set():
+            time.sleep(min(0.1, end - time.monotonic()))
+
+    def tab_n(n: int) -> None:
+        for _ in range(n):
+            safe_send('{Tab}')
+            sleep_with_stop(tab_delay)
+
+    # ----------------------------------------------------------------------- #
+    for i in range(start_from, num_accounts):
         if stop_event.is_set():
             break
 
-        update_status(account_num)
+        acct = i + 1
+        update_status(acct)
 
+        # account selection
         safe_click()
         sleep_with_stop(0.5)
-        for _ in range(2):
-            safe_send('{Tab}')
-            if stop_event.is_set():
-                return
-        safe_send('{Enter}')
-
+        safe_send('{Tab}{Tab}{Enter}')
         sleep_with_stop(0.5)
-        # Select the next account
-        down_arrow = account_num - 2
-        for _ in range(down_arrow):
-            safe_send('{Down}')
-            if stop_event.is_set():
-                return
+        safe_send('{Down}' * (acct - 2))
         sleep_with_stop(0.5)
         safe_send('{Enter}')
-
         sleep_with_stop(short_delay)
-        if market_limit == 'Limit':        
-            for _ in range(no_of_tabs-4):
-                safe_send('{Tab}')
-                sleep_with_stop(tab_delay)
-                if stop_event.is_set():
-                    return
-                
-            safe_send('{Space}')
-            safe_send('{Right}')
-            safe_send('{Tab}')
+
+        # market/limit order selection
+        if env.order_type is OrderType.LIMIT:
+            tab_n(env.tabs_to_price_field() - (4 if env.side is Side.BUY else 3))
+            safe_send('{Space}{Right}{Tab}')
             safe_send(str(price))
-
-            for _ in range(3):
-                safe_send('{Tab}')
-                sleep_with_stop(tab_delay)
-                if stop_event.is_set():
-                    return
-
-        if market_limit == 'Market':
-            for _ in range(no_of_tabs-3):
-                safe_send('{Tab}')
-                sleep_with_stop(tab_delay)
-                if stop_event.is_set():
-                    return
-            
+            tab_n(3 if env.side is Side.BUY else 4)
+        else:  # MARKET
+            tab_n(env.tabs_to_price_field() - (1 if env.side is Side.SELL else 3))
             safe_send('{Space}')
+            tab_n(3)
 
-            for _ in range(3):
-                safe_send('{Tab}')
-                sleep_with_stop(tab_delay)
-                if stop_event.is_set():
-                    return               
+        # confirm & close
         sleep_with_stop(0.5)
         safe_send('{Enter}')
         sleep_with_stop(long_delay)
         safe_send('{Enter}')
         sleep_with_stop(short_delay)
-        safe_click()       
-        if stop_event.is_set():
-            break
-
-
-def stop_script():
-    global stop_event
-    ahk.stop_hotkeys()
-    stop_event.set()
-
-ahk = AHK()
+        safe_click()

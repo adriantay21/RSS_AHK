@@ -13,14 +13,15 @@ class App:
 
         self.root = tk.Tk()
         self.root.title("Fidelity Trading Script")
+        self.root.iconbitmap("./assets/ytiledif.ico") 
         self.root.resizable(False, False)
 
-        self.bg_color = "#e8f5e9"
-        self.fg_color = "#1b5e20"
-        self.button_bg = "#a5d6a7"
-        self.button_fg = "#1b5e20"
+        self.bg_color = "#ffffff"
+        self.fg_color = "#000000"
+        self.button_bg = "#368626"
+        self.button_fg = "#ffffff"
         self.entry_bg = "#ffffff"
-        self.entry_fg = "#1b5e20"
+        self.entry_fg = "#000000"
         self.root.configure(bg=self.bg_color)
 
         def validate_numeric(P):
