@@ -4,6 +4,14 @@ from ahk import AHK
 from AHKscript import ahk_script
 import threading
 from pynput import keyboard
+import os, sys, pathlib
+
+# for exe and py compatibility
+def resource_path(relative: str) -> str:
+    base = getattr(sys, "_MEIPASS", pathlib.Path(__file__).parent)
+    return os.path.join(base, relative)
+
+
 
 class App:
     def __init__(self):
@@ -12,8 +20,8 @@ class App:
         self.listener_started = False
 
         self.root = tk.Tk()
-        self.root.title("Fidelity Trading Script")
-        self.root.iconbitmap("./assets/ytiledif.ico") 
+        self.root.title("ʎʇᴉlǝpᴉɟ")
+        self.root.iconbitmap(resource_path("assets/ytiledif.ico"))
         self.root.resizable(False, False)
 
         self.bg_color = "#ffffff"
