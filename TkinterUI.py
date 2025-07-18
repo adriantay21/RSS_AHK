@@ -6,12 +6,10 @@ import threading
 from pynput import keyboard
 import os, sys, pathlib
 
-# for exe and py compatibility
+# Get correct path for files whether running as .py or .exe
 def resource_path(relative: str) -> str:
     base = getattr(sys, "_MEIPASS", pathlib.Path(__file__).parent)
     return os.path.join(base, relative)
-
-
 
 class App:
     def __init__(self):
@@ -24,6 +22,7 @@ class App:
         self.root.iconbitmap(resource_path("assets/ytiledif.ico"))
         self.root.resizable(False, False)
 
+        # Color configuration
         self.bg_color = "#ffffff"
         self.fg_color = "#000000"
         self.button_bg = "#368626"
@@ -32,9 +31,8 @@ class App:
         self.entry_fg = "#000000"
         self.root.configure(bg=self.bg_color)
 
-        def validate_numeric(P):
-            return P.isdigit() or P == ""
-
+        # Entry validation functions
+        def validate_numeric(P): return P.isdigit() or P == ""
         def validate_float(P):
             try:
                 if P == "":
@@ -47,6 +45,7 @@ class App:
         validate_numeric_cmd = self.root.register(validate_numeric)
         validate_float_cmd = self.root.register(validate_float)
 
+        # GUI Layout
         tk.Label(self.root, text="Number of accounts:", bg=self.bg_color, fg=self.fg_color).grid(row=0, column=0, sticky='e', padx=5, pady=5)
         self.number_of_accounts_entry = tk.Entry(self.root, validate='key', validatecommand=(validate_numeric_cmd, '%P'), bg=self.entry_bg, fg=self.entry_fg)
         self.number_of_accounts_entry.grid(row=0, column=1, padx=5, pady=5)
@@ -79,29 +78,32 @@ class App:
         self.price_entry = tk.Entry(self.root, validate='key', validatecommand=(validate_float_cmd, '%P'), bg=self.entry_bg, fg=self.entry_fg)
         self.price_entry.grid(row=6, column=1, padx=5, pady=5)
 
+        # Start and Stop buttons
         self.start_button = tk.Button(self.root, text="Start", command=self.on_start, bg=self.button_bg, fg=self.button_fg)
-        self.start_button.grid(row=7, column=0, columnspan=1, pady=10, padx=5, sticky='e')
+        self.start_button.grid(row=7, column=0, pady=10, padx=5, sticky='e')
 
         self.stop_button = tk.Button(self.root, text="Stop", command=self.on_stop, bg=self.button_bg, fg=self.button_fg, state='disabled')
-        self.stop_button.grid(row=7, column=1, columnspan=1, pady=10, padx=5, sticky='w')
+        self.stop_button.grid(row=7, column=1, pady=10, padx=5, sticky='w')
 
         self.status_label = tk.Label(self.root, text="", fg="green", bg=self.bg_color)
         self.status_label.grid(row=8, column=0, columnspan=2, pady=5)
 
+        # Style configuration for combobox
         style = ttk.Style()
         style.theme_use('default')
         style.configure('TCombobox', fieldbackground=self.entry_bg, background=self.button_bg, foreground=self.entry_fg)
 
     def on_start(self):
+        # Retrieve user inputs
         self.number_of_accounts = self.number_of_accounts_entry.get()
         self.extended_hours = bool(self.extended_hours_var.get())
         self.delay_speed = self.delay_speed_dropdown.get()
         self.start_from = self.start_from_entry.get()
         self.market_limit = self.market_limit_dropdown.get()
         self.buy_sell = self.buy_sell_dropdown.get()
-
         self.start_from = int(self.start_from) if self.start_from.isdigit() else 1
 
+        # Parse price entry
         self.price = self.price_entry.get()
         if self.price:
             try:
@@ -111,6 +113,7 @@ class App:
         else:
             self.price = None
 
+        # Update status and start key listener
         self.status_label.config(text='Script ready, press "$" to activate')
         self.root.update()
 
@@ -123,6 +126,7 @@ class App:
         self.stop_button.config(state='normal')
 
     def on_stop(self):
+        # Stop the script
         self.stop_event.set()
         self.script_running = False
         self.status_label.config(text='Script stopped')
@@ -131,9 +135,11 @@ class App:
         self.root.update()
 
     def update_status(self, account_num):
+        # Update label from other threads
         self.root.after(0, lambda: self.status_label.config(text=f'Script running on account no: {account_num}'))
 
     def on_press(self, key):
+        # Toggle script on "$" key press
         try:
             if key.char == '$':
                 if not self.script_running:
@@ -149,6 +155,7 @@ class App:
             pass
 
     def run_ahk_script(self):
+        # Execute AHK script with user parameters
         try:
             number_of_accounts = int(self.number_of_accounts)
             start_from_value = int(self.start_from)

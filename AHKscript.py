@@ -15,7 +15,8 @@ class OrderType(Enum):
     LIMIT = auto()
     MARKET = auto()
 
-# delay profiles ------------------------------------------------------------ #
+
+# --------------------------------------------------------------------------- #
 DELAY_PROFILES: dict[str, dict[str, float]] = {
     'Fast':   dict(short=0.75, long=1.5, tab=0.05),
     'Medium': dict(short=1.0, long=2.0, tab=0.06),
