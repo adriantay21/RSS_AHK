@@ -31,7 +31,7 @@ class OrderEnv:
     extended: bool
 
     def tabs_to_price_field(self) -> int:
-        base = 13 if self.extended and self.side is Side.BUY else 15
+        base = 15
         if self.order_type is OrderType.MARKET:
             base -= 2
         return base
@@ -105,9 +105,13 @@ def ahk_script(
         # market/limit order selection
         if env.order_type is OrderType.LIMIT:
             tab_n(env.tabs_to_price_field() - (4 if env.side is Side.BUY else 3))
-            safe_send('{Space}{Right}{Tab}')
-            safe_send(str(price))
-            tab_n(3 if env.side is Side.BUY else 4)
+            if env.extended:
+                safe_send(str(price))
+                tab_n(2 if env.side is Side.BUY else 3)
+            else:
+                safe_send('{Space}{Right}{Tab}')
+                safe_send(str(price))
+                tab_n(3 if env.side is Side.BUY else 4)
         else:  # MARKET
             tab_n(env.tabs_to_price_field() - (1 if env.side is Side.SELL else 3))
             safe_send('{Space}')
