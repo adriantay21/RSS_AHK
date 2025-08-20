@@ -32,7 +32,7 @@ class OrderEnv:
     extended: bool
 
     def tabs_to_price_field(self) -> int:
-        base = 15
+        base = 14
         if self.order_type is OrderType.MARKET:
             base -= 2
         return base
