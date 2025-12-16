@@ -47,6 +47,7 @@ def ahk_script(
     delay_speed: str,
     update_status,
     price: float,
+    tab_override: int | None = None,
 ) -> None:
     
     # set delays based on the selected profile
@@ -63,6 +64,8 @@ def ahk_script(
         order_type=OrderType.LIMIT if market_limit == 'Limit' else OrderType.MARKET,
         extended=extended_hours,
     )
+
+    tabs_to_market = tab_override if tab_override is not None else 10
 
     # helpers --------------------------------------------------------------- #
     def safe_send(cmd: str) -> None:
@@ -103,8 +106,11 @@ def ahk_script(
 
         # market/limit order selection
         if env.order_type is OrderType.LIMIT:
-            tab_n(env.tabs_to_price_field() - (3 if env.side is Side.BUY else 2))
-            if env.extended:        
+            # custom override here
+            tab_n(tabs_to_market)
+            
+            if env.extended:
+                safe_send('{Space}{Right}{Tab}')
                 safe_send(str(price))
                 tab_n(2 if env.side is Side.BUY else 3)
             else:
@@ -112,7 +118,9 @@ def ahk_script(
                 safe_send(str(price))
                 tab_n(3 if env.side is Side.BUY else 4)
         else:  # MARKET
-            tab_n(env.tabs_to_price_field() - (2 if env.side is Side.SELL else 3))
+            if env.extended:
+                tab_n(1)
+            tab_n(11 if env.side is Side.BUY else 11)
             safe_send('{Space}')
             tab_n(3)
 

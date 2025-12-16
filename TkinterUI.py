@@ -11,11 +11,44 @@ def resource_path(relative: str) -> str:
     base = getattr(sys, "_MEIPASS", pathlib.Path(__file__).parent)
     return os.path.join(base, relative)
 
+class ToolTip:
+    def __init__(self, widget, text: str):
+        self.widget = widget
+        self.text = text
+        self.tipwindow = None
+        self.widget.bind("<Enter>", self.show_tip)
+        self.widget.bind("<Leave>", self.hide_tip)
+
+    def show_tip(self, _event=None):
+        if self.tipwindow or not self.text:
+            return
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + 20
+        self.tipwindow = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            tw,
+            text=self.text,
+            justify="left",
+            background="#ffffe0",
+            relief="solid",
+            borderwidth=1,
+            font=("tahoma", "8", "normal"),
+        )
+        label.pack(ipadx=1)
+
+    def hide_tip(self, _event=None):
+        if self.tipwindow:
+            self.tipwindow.destroy()
+            self.tipwindow = None
+
 class App:
     def __init__(self):
         self.script_running = False
         self.stop_event = threading.Event()
         self.listener_started = False
+        self.tab_override = None
 
         self.root = tk.Tk()
         self.root.title("ʎʇᴉlǝpᴉɟ")
@@ -50,43 +83,50 @@ class App:
         self.number_of_accounts_entry = tk.Entry(self.root, validate='key', validatecommand=(validate_numeric_cmd, '%P'), bg=self.entry_bg, fg=self.entry_fg)
         self.number_of_accounts_entry.grid(row=0, column=1, padx=5, pady=5)
 
-        self.extended_hours_var = tk.BooleanVar()
-        tk.Label(self.root, text="Extended Hours:", bg=self.bg_color, fg=self.fg_color).grid(row=1, column=0, sticky='e', padx=5, pady=5)
-        extended_hours_checkbutton = tk.Checkbutton(self.root, variable=self.extended_hours_var, onvalue=True, offvalue=False, bg=self.bg_color, fg=self.fg_color, selectcolor=self.bg_color)
-        extended_hours_checkbutton.grid(row=1, column=1, sticky='w', padx=5, pady=5)
+        tk.Label(self.root, text="Override Tabs:", bg=self.bg_color, fg=self.fg_color).grid(row=1, column=0, sticky='e', padx=5, pady=5)
+        self.tab_override_entry = tk.Entry(self.root, validate='key', validatecommand=(validate_numeric_cmd, '%P'), bg=self.entry_bg, fg=self.entry_fg)
+        self.tab_override_entry.grid(row=1, column=1, padx=5, pady=5)
+        tooltip_label = tk.Label(self.root, text="?", bg=self.bg_color, fg=self.fg_color, width=2, relief='ridge')
+        tooltip_label.grid(row=1, column=2, padx=5, pady=5)
+        ToolTip(tooltip_label, "No. of tabs from Account num to Market box. Default: 10")
 
-        tk.Label(self.root, text="Market/Limit:", bg=self.bg_color, fg=self.fg_color).grid(row=2, column=0, sticky='e', padx=5, pady=5)
+        self.extended_hours_var = tk.BooleanVar()
+        tk.Label(self.root, text="Extended Hours:", bg=self.bg_color, fg=self.fg_color).grid(row=2, column=0, sticky='e', padx=5, pady=5)
+        extended_hours_checkbutton = tk.Checkbutton(self.root, variable=self.extended_hours_var, onvalue=True, offvalue=False, bg=self.bg_color, fg=self.fg_color, selectcolor=self.bg_color)
+        extended_hours_checkbutton.grid(row=2, column=1, sticky='w', padx=5, pady=5)
+
+        tk.Label(self.root, text="Market/Limit:", bg=self.bg_color, fg=self.fg_color).grid(row=3, column=0, sticky='e', padx=5, pady=5)
         self.market_limit_dropdown = ttk.Combobox(self.root, values=["Market", "Limit"], state="readonly", width=10)
-        self.market_limit_dropdown.grid(row=2, column=1, padx=5, pady=5)
+        self.market_limit_dropdown.grid(row=3, column=1, padx=5, pady=5)
         self.market_limit_dropdown.set("Limit")
 
-        tk.Label(self.root, text="Buy/Sell:", bg=self.bg_color, fg=self.fg_color).grid(row=3, column=0, sticky='e', padx=5, pady=5)
+        tk.Label(self.root, text="Buy/Sell:", bg=self.bg_color, fg=self.fg_color).grid(row=4, column=0, sticky='e', padx=5, pady=5)
         self.buy_sell_dropdown = ttk.Combobox(self.root, values=["Buy", "Sell"], state="readonly", width=10)
-        self.buy_sell_dropdown.grid(row=3, column=1, padx=5, pady=5)
+        self.buy_sell_dropdown.grid(row=4, column=1, padx=5, pady=5)
         self.buy_sell_dropdown.set("Buy")
 
-        tk.Label(self.root, text="Delay Speed:", bg=self.bg_color, fg=self.fg_color).grid(row=4, column=0, sticky='e', padx=5, pady=5)
+        tk.Label(self.root, text="Delay Speed:", bg=self.bg_color, fg=self.fg_color).grid(row=5, column=0, sticky='e', padx=5, pady=5)
         self.delay_speed_dropdown = ttk.Combobox(self.root, values=["Slower","Slow", "Medium", "Fast"], state="readonly", width=10)
-        self.delay_speed_dropdown.grid(row=4, column=1, padx=5, pady=5)
+        self.delay_speed_dropdown.grid(row=5, column=1, padx=5, pady=5)
         self.delay_speed_dropdown.set("Medium")
 
-        tk.Label(self.root, text="Start From (optional):", bg=self.bg_color, fg=self.fg_color).grid(row=5, column=0, sticky='e', padx=5, pady=5)
+        tk.Label(self.root, text="Start From (optional):", bg=self.bg_color, fg=self.fg_color).grid(row=6, column=0, sticky='e', padx=5, pady=5)
         self.start_from_entry = tk.Entry(self.root, validate='key', validatecommand=(validate_numeric_cmd, '%P'), bg=self.entry_bg, fg=self.entry_fg)
-        self.start_from_entry.grid(row=5, column=1, padx=5, pady=5)
+        self.start_from_entry.grid(row=6, column=1, padx=5, pady=5)
 
-        tk.Label(self.root, text="Price (optional):", bg=self.bg_color, fg=self.fg_color).grid(row=6, column=0, sticky='e', padx=5, pady=5)
+        tk.Label(self.root, text="Price (optional):", bg=self.bg_color, fg=self.fg_color).grid(row=7, column=0, sticky='e', padx=5, pady=5)
         self.price_entry = tk.Entry(self.root, validate='key', validatecommand=(validate_float_cmd, '%P'), bg=self.entry_bg, fg=self.entry_fg)
-        self.price_entry.grid(row=6, column=1, padx=5, pady=5)
+        self.price_entry.grid(row=7, column=1, padx=5, pady=5)
 
         # Start and Stop buttons
         self.start_button = tk.Button(self.root, text="Start", command=self.on_start, bg=self.button_bg, fg=self.button_fg)
-        self.start_button.grid(row=7, column=0, pady=10, padx=5, sticky='e')
+        self.start_button.grid(row=8, column=0, pady=10, padx=5, sticky='e')
 
         self.stop_button = tk.Button(self.root, text="Stop", command=self.on_stop, bg=self.button_bg, fg=self.button_fg, state='disabled')
-        self.stop_button.grid(row=7, column=1, pady=10, padx=5, sticky='w')
+        self.stop_button.grid(row=8, column=1, pady=10, padx=5, sticky='w')
 
         self.status_label = tk.Label(self.root, text="", fg="green", bg=self.bg_color)
-        self.status_label.grid(row=8, column=0, columnspan=2, pady=5)
+        self.status_label.grid(row=9, column=0, columnspan=3, pady=5)
 
         # Style configuration for combobox
         style = ttk.Style()
@@ -99,6 +139,8 @@ class App:
         self.extended_hours = bool(self.extended_hours_var.get())
         self.delay_speed = self.delay_speed_dropdown.get()
         self.start_from = self.start_from_entry.get()
+        tab_override_value = self.tab_override_entry.get()
+        self.tab_override = int(tab_override_value) if tab_override_value.isdigit() else None
         self.market_limit = self.market_limit_dropdown.get()
         self.buy_sell = self.buy_sell_dropdown.get()
         self.start_from = int(self.start_from) if self.start_from.isdigit() else 1
@@ -159,7 +201,19 @@ class App:
         try:
             number_of_accounts = int(self.number_of_accounts)
             start_from_value = int(self.start_from)
-            ahk_script(number_of_accounts, self.extended_hours, start_from_value, self.stop_event, self.market_limit, self.buy_sell, self.delay_speed, self.update_status, self.price)
+            tab_override_value = self.tab_override if self.tab_override is not None else None
+            ahk_script(
+                number_of_accounts,
+                self.extended_hours,
+                start_from_value,
+                self.stop_event,
+                self.market_limit,
+                self.buy_sell,
+                self.delay_speed,
+                self.update_status,
+                self.price,
+                tab_override_value,
+            )
         except Exception as e:
             print(f"Error: {e}")
         finally:
